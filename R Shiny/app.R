@@ -4,6 +4,14 @@ setwd("~/Desktop/Data Science Major/stochify/R Shiny")
 source("../stochify.R")
 # library(parallel)
 
+
+#######################
+######## NOTES ########
+#######################
+    # - check chat gpt conversations "GGplot2 for image plotting" and "Shiny App: Plot Download"
+        # -> make the download button conditional, use ggplot2 to save image.
+        # -> use the switch cases to change the way the plots are made
+
 # UI ----------------------------------------------------------------------
 
 
