@@ -1,6 +1,6 @@
 library(imager)
 
-stochify <- function(path){
+stochify <- function(path, shiny_name){
   #############################################################################
   # stochify() extracts grayscale values from any image into a matrix. It     #
   # performs matrix multiplication with another, randomly generated matrix of #
@@ -26,12 +26,12 @@ stochify <- function(path){
   stoch <- gray_mat %*% rand_mat
   
   # display the resulting image
-  name <- gsub("\\..*", "", path)
+  name <- gsub("\\..*", "", shiny_name)
   image(stoch,col=grey(seq(0, 1, length = 256)))
   title(main= substitute(paste("Stochastic ", italic(name))))
 }
 
-self.stochify <- function(path){
+self.stochify <- function(path, shiny_name){
   ##############################################################################
   # self.stochify() extracts grayscale values from any image into a matrix. It #
   # performs matrix multiplication with its own transpose matrix and creates a #
@@ -54,12 +54,12 @@ self.stochify <- function(path){
   stoch <- gray_mat %*% t(gray_mat)
   
   # display the resulting image
-  name <- gsub("\\..*", "", path)
+  name <- gsub("\\..*", "", shiny_name)
   image(stoch,col=grey(seq(0, 1, length = 256)))
   title(main = substitute(paste('\u00A7', " ",italic(name)," ", '\u00A7' )))
 }
 
-cross.stochify <- function(path1, path2){
+cross.stochify <- function(path1, path2, shiny_name1, shiny_name2){
   ##############################################################################
   # cross.stochify() extracts grayscale values from any 2 images into 2        #
   # matrices. It checks if the "raw" matrices are compatible for matrix        #
@@ -114,8 +114,8 @@ cross.stochify <- function(path1, path2){
     stoch <- A %*% B } 
   
   # display the resulting image
-  name1 <- gsub("\\..*", "", path1)
-  name2 <- gsub("\\..*", "", path2)
+  name1 <- gsub("\\..*", "", shiny_name1)
+  name2 <- gsub("\\..*", "", shiny_name2)
   image(stoch,col=grey(seq(0, 1, length = 256)))
   title(main = substitute(paste( italic(name1)," ", '\u00A7', " ", italic(name2))))
 }
