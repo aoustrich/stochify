@@ -1,4 +1,5 @@
 library(shiny)
+library(jpeg)
 setwd("~/Desktop/Data Science Major/stochify/R Shiny")
 source("../stochify.R")
 # library(parallel)
@@ -34,8 +35,8 @@ ui <- fluidPage(
       #   downloadButton(outputID = "down", "Download Plot")
       # ),
       tags$hr(),
-      downloadButton(outputId = "downloadPlot", label = "Download Plot")
-      
+      # downloadButton(outputId = "downloadPlot", label = "Download Plot")
+      downloadButton("downloadPlot", "Download Plot", style = "display:none;")
     ),
     
     mainPanel( 
@@ -51,7 +52,7 @@ ui <- fluidPage(
         #       img(src = "2.jpeg")),
         # column(4,
         #        img(src = "3.jpeg")),
-        tags$hr(),
+        tags$hr()
         
         # h4("Uploaded File Status:"),
         # verbatimTextOutput("image1_uploaded")
@@ -69,96 +70,131 @@ ui <- fluidPage(
 
 
 server <- function(input, output) {
+ 
+  data <- reactive({
+    # Check if a file is uploaded
+    req(input$image1)
     
-  # image1_uploaded <- reactive({
-  #   if(is.null(input$image1)){
-  #     return("FALSE")
-  #   }
-  #   else
-  #   {
-  #     return("TRUE")
-  #   }
-  # })
-  # 
+    # Read the uploaded file (adjust file reading logic as per your file format)
+    inFile <- input$image1
+    img <- readJPEG(inFile$datapath)
+    # Add more file reading processing if needed
+    
+    # Perform different plotting based on selected type
+    plot_data <- switch(input$stochifyMethod,
+                        "stochify()" = {
+                          # Generate plot type 1
+                          # Replace this section with your specific plot generation logic for Type 1
+                          ggplot(data = NULL, aes()) + geom_point()
+                        },
+                        "self_stochify()" = {
+                          # Generate plot type 2
+                          # Replace this section with your specific plot generation logic for Type 2
+                          ggplot(data = NULL, aes()) + geom_bar()
+                        },
+                        "cross_stochify()" = {
+                          # Generate plot type 3
+                          # Replace this section with your specific plot generation logic for Type 3
+                          ggplot(data = NULL, aes()) + geom_line()
+                        }
+    )
+    
+    return(plot_data)
+  })
   
-  ## Check if image is uploaded
-  # getData <- reactive({
-  #   if(is.null(input$image1)) return(NULL)
-  #  
-  # })
-  # output$fileUploaded <- reactive({
-  #   return(!is.null(getData()))
-  # })
-  # outputOptions(output, 'fileUploaded', suspendWhenHidden=FALSE)
+  observeEvent(input$show_plot, {
+    output$plot <- renderPlot({
+      # Check if a file is uploaded and then render the plot
+      plot_data <- data()
+      plot_data
+    })
+    
+    # Show the download button after the plot is generated
+    output$download_plot <- renderUI({
+      if (!is.null(data())) {
+        tags$button(id = "downloadButton", "Download Plot")
+      }
+    })
+  })
+  
+  output$downloadPlot <- downloadHandler(
+    filename = function() {
+      "plot.png"  # Change the filename extension to .png or .jpeg as needed
+    },
+    content = function(file) {
+      # Save the plot as a PNG or JPEG file (adjust based on the plot object)
+      ggsave(file, data(), device = "png")  # Change 'device' parameter accordingly
+    }
+  )
 
  
-  
-  
-  # Function to check if new plot should be calculated
-  generatePlot <- function() {
-    # Perform checks
-    # if (image1_uploaded == "FALSE") {
-    #   output$plotError <- renderText({
-    #     "Upload an Image!"
-    #   })
-    # }
-    # else if (input$stochifyMethod == "cross_stochify()" && is.null(input$image2)) {
-    #   output$newPlot <- renderText({
-    #     "Upload a second image!"
-    #   })
-    # }
-    # else {
-      # Generate the new plot
-      if (input$stochifyMethod == "stochify()") {
-        
-        # output$plotStatus <- renderText({
-        #   "plot generated"
-        # })
-        
-        output$newPlot <- renderPlot({
-          stochify(input$image1$datapath, input$image1$name)
-        }, width = 800, height = 800, res = 128)
-      } else if (input$stochifyMethod == "self_stochify()") {
-        
-        # output$plotStatus <- renderText({
-        #   "plot generated"
-        # })
-        
-        output$newPlot <- renderPlot({
-          self.stochify(input$image1$datapath, input$image1$name)
-        }, width = 800, height = 800, res = 128)
-      } else if (input$stochifyMethod == "cross_stochify()") {
-        
-        # output$plotStatus <- renderText({
-        #   "plot generated"
-        # })
-        
-        output$newPlot <- renderPlot({
-          cross.stochify(input$image1$datapath, input$image2$datapath, input$image1$name, input$image2$name)
-        }, width = 800, height = 800, res = 128)
-      }
-    # }
-  }
-    
-  # Event Handler for action Button
-  observeEvent(input$generate, {
-    generatePlot() # Call the function to perform checks and generate plot
-  })
-    
-
-  
-  
-  ## download plot
-    output$downloadPlot <- downloadHandler(
-      filename = "shinyplot",
-      content = function(file) {
-        png(file)
-        generatePlot()
-        dev.off()
-      },
-      contentType = "image/png"
-    )
-  
+# ------
+  # 
+  # # Function to check if new plot should be calculated
+  # generatePlot <- function() {
+  #   # Perform checks
+  #   # if (image1_uploaded == "FALSE") {
+  #   #   output$plotError <- renderText({
+  #   #     "Upload an Image!"
+  #   #   })
+  #   # }
+  #   # else if (input$stochifyMethod == "cross_stochify()" && is.null(input$image2)) {
+  #   #   output$newPlot <- renderText({
+  #   #     "Upload a second image!"
+  #   #   })
+  #   # }
+  #   # else {
+  #     # Generate the new plot
+  #     if (input$stochifyMethod == "stochify()") {
+  #       
+  #       # output$plotStatus <- renderText({
+  #       #   "plot generated"
+  #       # })
+  #       
+  #       output$newPlot <- renderPlot({
+  #         stochify(input$image1$datapath, input$image1$name)
+  #       }, width = 800, height = 800, res = 128)
+  #     } else if (input$stochifyMethod == "self_stochify()") {
+  #       
+  #       # output$plotStatus <- renderText({
+  #       #   "plot generated"
+  #       # })
+  #       
+  #       output$newPlot <- renderPlot({
+  #         self.stochify(input$image1$datapath, input$image1$name)
+  #       }, width = 800, height = 800, res = 128)
+  #     } else if (input$stochifyMethod == "cross_stochify()") {
+  #       
+  #       # output$plotStatus <- renderText({
+  #       #   "plot generated"
+  #       # })
+  #       
+  #       output$newPlot <- renderPlot({
+  #         cross.stochify(input$image1$datapath, input$image2$datapath, input$image1$name, input$image2$name)
+  #       }, width = 800, height = 800, res = 128)
+  #     }
+  #   # }
+  # }
+  #   
+  # # Event Handler for action Button
+  # observeEvent(input$generate, {
+  #   generatePlot() # Call the function to perform checks and generate plot
+  # })
+  #   
+  # 
+  # 
+  # 
+  # ## download plot
+  #   output$downloadPlot <- downloadHandler(
+  #     filename = "shinyplot",
+  #     content = function(file) {
+  #       png(file)
+  #       generatePlot()
+  #       dev.off()
+  #     },
+  #     contentType = "image/png"
+  #   )
+  # 
   # output$downloadPlot <- downloadHandler(
   #   filename = function(){
   #     paste0("shinyplot","png",sep=".") },

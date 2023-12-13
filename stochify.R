@@ -1,11 +1,15 @@
+library(ggplot2)
 library(imager)
 
+setwd("~/Desktop/Data Science Major/stochify/R Shiny")
+
+# stochify <- function(path){
 stochify <- function(path, shiny_name){
   #############################################################################
   # stochify() extracts grayscale values from any image into a matrix. It     #
   # performs matrix multiplication with another, randomly generated matrix of #
   # compatible size and creates a plot of the grayscale values of the         #
-  # resulting matrix.                                                         #
+  # resulting matrix using ggplot2.                                          #
   #                                                                           #
   # The title of the plot uses the name of the image file.                    #
   #############################################################################
@@ -25,11 +29,77 @@ stochify <- function(path, shiny_name){
   # matrix multiplication
   stoch <- gray_mat %*% rand_mat
   
-  # display the resulting image
-  name <- gsub("\\..*", "", shiny_name)
-  image(stoch,col=grey(seq(0, 1, length = 256)))
-  title(main= substitute(paste("Stochastic ", italic(name))))
+  
+  # ## A
+  # # Convert the matrix to a data frame for ggplot
+  # row_indices <- rep(1:nrow(stoch), each = ncol(stoch))
+  # col_indices <- rep(1:ncol(stoch), times = nrow(stoch))
+  # values <- as.vector(stoch)
+  # 
+  # data <- data.frame(row = row_indices, col = col_indices, value = values)
+  
+  ## B
+  df <- reshape2::melt(stoch, varnames = c("y", "x"), value.name = "value")
+  
+  # name <- gsub("\\..*", "", path)
+  
+  # ## A 
+  # gg <- ggplot(data, aes(x = col, y = row, fill = value)) +
+  #   geom_tile() +
+  #   scale_fill_gradient(low = "black", high = "white") +
+  #   # labs(title = paste("Stochastic", shiny_name), x = "", y = "") +
+  #   labs(title = paste("Stochastic", name), x = "", y = "") +
+  #   theme_bw() + # Set a basic white background
+  #   theme(panel.grid = element_blank()) + # Remove gridlines
+  #   guides(fill = FALSE) # Remove the fill legend
+  
+  ## B
+  gg <- ggplot(df, aes_string(x = "x", y = "y", fill = "value")) + 
+    geom_raster() +                        # same as image in base plot 
+    # scale_x_continuous(name = "column", breaks = c(1, 2)) + # name axis and choose breaks
+    # scale_y_reverse(name = "row", breaks = c(1, 2)) +       # reverse scale 
+    scale_fill_continuous(high = "white", low = "black", guide = "none") +  # grayscale 
+    theme_bw(base_size = 14)   +            # nicer theme 
+      theme(panel.grid = element_blank()) + # Remove gridlines
+      guides(fill = "none") # Remove the fill legend
+  
+  print(gg)
 }
+
+# stochify("www/3.jpeg")
+
+# library(imager)
+# 
+# stochify <- function(path, shiny_name){
+#   #############################################################################
+#   # stochify() extracts grayscale values from any image into a matrix. It     #
+#   # performs matrix multiplication with another, randomly generated matrix of #
+#   # compatible size and creates a plot of the grayscale values of the         #
+#   # resulting matrix.                                                         #
+#   #                                                                           #
+#   # The title of the plot uses the name of the image file.                    #
+#   #############################################################################
+#   
+#   # read in an image
+#   img <- load.image(path)
+#   
+#   # convert the image to grayscale
+#   gray <- grayscale(img)
+#   
+#   # extract the grayscale values into a matrix
+#   gray_mat <-  as.matrix(gray)
+#   
+#   # create a random matrix of a size that is matrix multiplication compatible
+#   rand_mat <- matrix(runif(length(gray_mat)), nrow = ncol(gray_mat), ncol = nrow(gray_mat))
+#   
+#   # matrix multiplication
+#   stoch <- gray_mat %*% rand_mat
+#   
+#   # display the resulting image
+#   name <- gsub("\\..*", "", shiny_name)
+#   image(stoch,col=grey(seq(0, 1, length = 256)))
+#   title(main= substitute(paste("Stochastic ", italic(name))))
+# }
 
 self.stochify <- function(path, shiny_name){
   ##############################################################################
